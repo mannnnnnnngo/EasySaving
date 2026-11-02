@@ -34,6 +34,9 @@ def make_pdf(path, pages=3):
         page.draw_rect(pymupdf.Rect(40, 300, 400, 500), color=(0, 0, 1), fill=(0.8, 0.9, 1))
         page.insert_text((60, 80), f"Slide title {i + 1}", fontsize=36, color=(0.1, 0.1, 0.4))
         page.insert_text((60, 140), "Body text with a number 42", fontsize=16)
+        page.draw_circle((700, 400), 60, color=(1, 0, 0), fill=(1, 1, 0))
+        page.draw_line((40, 200), (900, 200), color=(0, 0, 0), width=2)
+        page.insert_text((920, 500), "Side note", fontsize=14, rotate=90)
     doc.save(path)
     doc.close()
     return path
@@ -66,9 +69,44 @@ def main():
         check("16:9 크기 (960x540pt)", prs.slide_width == 960 * 12700 and prs.slide_height == 540 * 12700)
         check("제목이 편집 가능한 글자로", any("Slide title 2" in t for t in slides[1][0]))
         check("본문 글자", any("Body text with a number 42" in t for t in slides[0][0]))
-        check("배경 그림 1장씩", all(13 in kinds for _t, _n, kinds in slides))
+        kinds = slides[0][2]
+        check("배경 그림 없음", 13 not in kinds, str(kinds))
+        check("사각형 → 사각형 개체", any(sh.shape_type == 1 and sh.name.startswith("Rectangle")
+                                        for sh in prs.slides[0].shapes))
+        check("원 → 자유형 도형 개체", 5 in kinds)
+        check("직선 → 선 개체", 9 in kinds)
+        check("세로 글자 → 회전된 텍스트 상자",
+              any(sh.has_text_frame and sh.text_frame.text == "Side note" and sh.rotation == 270
+                  for sh in prs.slides[0].shapes))
         check("진행 콜백", seen == [(1, 3), (2, 3), (3, 3)], str(seen))
         print(f"    ({time.time() - t0:.2f}초)")
+
+        print("\n[돌려 놓은 페이지]")
+        import pymupdf
+        rot_src = os.path.join(tmp, "rotated.pdf")
+        rdoc = pymupdf.open()
+        rp = rdoc.new_page(width=400, height=300)
+        rp.insert_text((20, 40), "Turned", fontsize=20)
+        rp.draw_rect(pymupdf.Rect(10, 60, 100, 120), fill=(0, 1, 0))
+        px = pymupdf.Pixmap(pymupdf.csRGB, (0, 0, 20, 10), False)
+        px.clear_with(128)
+        rp.insert_image(pymupdf.Rect(150, 60, 250, 110), pixmap=px)
+        rp.set_rotation(90)
+        rdoc.save(rot_src)
+        rdoc.close()
+        rot_out = os.path.join(tmp, "rotated.pptx")
+        pdf_to_pptx.convert_pdf_to_pptx(rot_src, rot_out)
+        from pptx import Presentation
+        rshapes = list(Presentation(rot_out).slides[0].shapes)
+        rect = next(sh for sh in rshapes if sh.name.startswith("Rectangle"))
+        # (10,60,100,120) 를 90도 돌리면 (180,10)-(240,100)
+        check("돌린 페이지의 사각형 위치", (round(rect.left / 12700), round(rect.top / 12700),
+                                          round(rect.width / 12700), round(rect.height / 12700))
+              == (180, 10, 60, 90), str((rect.left / 12700, rect.top / 12700)))
+        txt = next(sh for sh in rshapes if sh.has_text_frame and sh.text_frame.text == "Turned")
+        check("돌린 페이지의 글자는 세로 상자", txt.rotation == 90, str(txt.rotation))
+        pic = next(sh for sh in rshapes if sh.shape_type == 13)
+        check("돌린 페이지의 그림은 돌린 그림 개체", pic.rotation == 90, str(pic.rotation))
 
         print("\n[그림 그대로 모드]")
         out2 = os.path.join(tmp, "image.pptx")
