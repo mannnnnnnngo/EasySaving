@@ -69,7 +69,7 @@ powershell -NoProfile -Command "$ws = New-Object -ComObject WScript.Shell; forea
 
 echo  [4/5] 프로그램 목록에 등록...
 reg add "%REGKEY%" /v DisplayName /t REG_SZ /d "%APPNAME%" /f >nul
-reg add "%REGKEY%" /v DisplayVersion /t REG_SZ /d "1.1.0" /f >nul
+reg add "%REGKEY%" /v DisplayVersion /t REG_SZ /d "1.2.0" /f >nul
 reg add "%REGKEY%" /v Publisher /t REG_SZ /d "Easy Saving" /f >nul
 reg add "%REGKEY%" /v DisplayIcon /t REG_SZ /d "%INSTALLDIR%\%EXENAME%" /f >nul
 reg add "%REGKEY%" /v InstallLocation /t REG_SZ /d "%INSTALLDIR%" /f >nul

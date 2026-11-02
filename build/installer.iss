@@ -7,7 +7,7 @@
 ;   3) build\build_installer.bat 실행 (또는 이 파일을 Inno Setup 으로 열고 F9)
 
 #define AppName "Easy Saving"
-#define AppVersion "1.1.0"
+#define AppVersion "1.2.0"
 #define AppExe "EasySaving.exe"
 
 [Setup]
