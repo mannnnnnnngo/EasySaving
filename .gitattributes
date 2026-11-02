@@ -1,0 +1,4 @@
+# 배치 파일은 CP949 + CRLF 그대로 (바꾸면 cmd 에서 한글 줄이 깨진다)
+*.bat -text
+*.vbs -text
+*.iss text eol=crlf

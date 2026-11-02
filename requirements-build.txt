@@ -1,0 +1,3 @@
+# 윈도우 .exe 빌드에만 필요 (spec 의 optimize 옵션은 6.4 이상 필요)
+-r requirements.txt
+pyinstaller>=6.4.0

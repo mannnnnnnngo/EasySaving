@@ -1,0 +1,154 @@
+{
+  "project": "Easy Saving (PDF 페이지 분할 저장 앱)",
+  "goal": "PDF를 페이지별로 자동 분할해 데스크탑 폴더에 '[제목] - N.pdf' 형식으로 저장하는 플로팅 버튼 앱. 개발/테스트는 macOS, 배포 목표는 Windows .exe 인스톨러.",
+  "hard_constraints": [
+    {
+      "id": "mem-100mb",
+      "rule": "실행 중 메모리(RSS) 100MB 이하 유지",
+      "decision": "PySide6(Qt) 실측 112.7MB로 탈락 → Tkinter + pypdf 채택 (macOS 실측 81.7MB, Windows는 더 낮음)",
+      "status": "done"
+    },
+    {
+      "id": "layered",
+      "rule": "레이어 구조 (core / platform_layer / services / ui) — 상위 레이어만 하위 레이어를 의존",
+      "status": "done"
+    }
+  ],
+  "architecture": {
+    "layer_1_core": "순수 도메인. OS·UI 의존 없음. 설정 모델, 파일명 규칙, PDF 분할 엔진.",
+    "layer_2_platform": "OS 추상화. 경로, 권한 확인.",
+    "layer_3_services": "애플리케이션 서비스. 설정 저장/로드, 분할 작업 스레드 오케스트레이션, 이동 조합키 모델.",
+    "layer_4_ui": "Tkinter 프레젠테이션. 플로팅 버튼, 드롭다운, 다이얼로그, 튜토리얼.",
+    "composition_root": "easysaving/main.py"
+  },
+  "checklist": [
+    {
+      "id": 1,
+      "task": "docx 요구사항 분석 및 스택 메모리 실측",
+      "status": "done",
+      "notes": "PySide6 112.7MB vs Tkinter 81.7MB"
+    },
+    {
+      "id": 2,
+      "task": "core 레이어: 설정 모델(models.py), 파일명 규칙(naming.py), PDF 분할 엔진(splitter.py), 예외(errors.py)",
+      "status": "done",
+      "notes": "pypdf 지연 임포트 + 페이지 단위 스트리밍 쓰기로 메모리 억제"
+    },
+    {
+      "id": 3,
+      "task": "platform_layer: 경로(paths.py), 권한 확인(permissions.py)",
+      "status": "done",
+      "notes": "macOS=AXIsProcessTrusted/CGPreflightScreenCaptureAccess/osascript+mdfind, Windows=EnumWindows+디렉터리 검색"
+    },
+    {
+      "id": 4,
+      "task": "services: 설정 저장/로드, 분할 작업 스레드, 이동 조합키 매칭",
+      "status": "done",
+      "notes": "config_service / split_service(queue 기반 진행률) / combo.py(플랫폼별 modifier 마스크)"
+    },
+    {
+      "id": 5,
+      "task": "UI: 플로팅 버튼 (Canvas 알약 모양, '저장하기' + 드롭다운 ▾)",
+      "status": "done"
+    },
+    {
+      "id": 6,
+      "task": "UI: Alt + 마우스 우클릭 드래그로 버튼 이동 (조합키는 설정에서 변경 가능)",
+      "status": "done"
+    },
+    {
+      "id": 7,
+      "task": "UI: 드롭다운 메뉴 (여러 파일 저장하기 / 설정 / 튜토리얼 다시 보기 / 종료)",
+      "status": "done"
+    },
+    {
+      "id": 8,
+      "task": "저장하기 플로우: 누르면 OS 기본 파일 창이 바로 열림",
+      "status": "done"
+    },
+    {
+      "id": 9,
+      "task": "여러 파일 저장하기 플로우: 따로 저장 / 한 폴더에 모아 저장(상위 폴더 이름 입력)",
+      "status": "done"
+    },
+    {
+      "id": 10,
+      "task": "저장 규칙: 데스크탑에 '[제목] 저장' 폴더 생성 → '[제목] - 1.pdf' … 저장",
+      "status": "done"
+    },
+    {
+      "id": 11,
+      "task": "설정 창: 이동 조합키 레코더, 버튼색/글자색, 크기, 글자, 투명도, 저장 위치, 번호 자릿수, 항상 위",
+      "status": "done",
+      "notes": "레코더는 클릭 → 조합 입력 → 바깥 클릭 시 저장"
+    },
+    {
+      "id": 12,
+      "task": "튜토리얼: 단계별(다음/이전) 상세 안내 + 필요한 권한 안내 + 권한 설정 완료 전까지 매 실행 시 표시",
+      "status": "done"
+    },
+    {
+      "id": 13,
+      "task": "진행률 창 + 완료 알림 + 저장 후 폴더 자동 열기",
+      "status": "done"
+    },
+    {
+      "id": 14,
+      "task": "메모리 가드: RSS 측정 유틸, 설정 창에 현재 사용량 표시",
+      "status": "done"
+    },
+    {
+      "id": 15,
+      "task": "Windows 빌드: PyInstaller spec(.exe) + 빌드 배치파일 + 아이콘 생성기",
+      "status": "done",
+      "notes": "build/EasySaving.spec, build/build_windows.bat, tools/make_icon.py(순수 stdlib ICO 생성). spec 은 실제 빌드로 검증 — 단일 실행 파일 4.4MB, 정상 실행, RSS 23.7MB"
+    },
+    {
+      "id": 16,
+      "task": "Windows 설치: 설치하기.bat (+ 제거하기.bat) — 앱을 컴퓨터에 설치",
+      "status": "done",
+      "notes": "%LOCALAPPDATA%\\Programs\\EasySaving 설치(관리자 권한 불필요), 바탕화면+시작메뉴 바로가기, '앱 및 기능' 등록, 자동 실행 선택, 제거 스크립트"
+    },
+    {
+      "id": 17,
+      "task": "Windows 설치 마법사: Inno Setup 스크립트 → EasySaving_Setup.exe",
+      "status": "done",
+      "notes": "build/installer.iss + build/build_installer.bat. Inno Setup 6 설치된 윈도우에서 실행"
+    },
+    {
+      "id": 18,
+      "task": "README + 배포 폴더용 사용법.txt",
+      "status": "done"
+    },
+    {
+      "id": 19,
+      "task": "로직 테스트 (분할 정확도, 폴더/파일명, 여러 파일, 이름 충돌, 손상 PDF, 설정 복구, 조합키, 메모리)",
+      "status": "done",
+      "notes": "tests/test_core.py 전체 통과. 124페이지 0.03초, 24.5MB"
+    },
+    {
+      "id": 20,
+      "task": "실제 윈도우 PC 에서 build_windows.bat 실행 → EasySaving.exe 생성 확인",
+      "status": "todo",
+      "notes": "현재 개발 환경이 macOS 라 미실행. 윈도우에서 배치파일 더블클릭만 하면 됨"
+    },
+    {
+      "id": 21,
+      "task": "GUI 스모크 테스트 (모든 화면 실제 실행)",
+      "status": "done",
+      "notes": "tests/smoke_ui.py 11개 화면 전체 통과. 원인 2가지를 실제로 고침 — (1) overrideredirect 루트의 자식 다이얼로그가 macOS 에서 안 뜨는 문제 → 루트는 withdraw 하고 플로팅 버튼을 Toplevel 로 변경, (2) macOS Tk 8.5 에서 갓 만든 다이얼로그에 .update() 호출 시 멈춤 → 테스트에서 update_idletasks() 사용 (앱 본체는 원래 update() 미사용)"
+    },
+    {
+      "id": 22,
+      "task": "빌드 재검증 (구조 변경 후)",
+      "status": "done",
+      "notes": "PyInstaller 재빌드 4.4MB, 정상 실행, RSS 23.6MB"
+    },
+    {
+      "id": 23,
+      "task": "저장 전 미리보기: '이렇게 저장할까요?' — 만들어질 폴더/파일 이름과 개수를 보여주고 확인받기",
+      "status": "done",
+      "notes": "splitter.page_count 를 워커 스레드에서 돌려 한 줄씩 채움(UI 안 멈춤). 비밀번호·손상 PDF 를 저장 전에 표시. 설정 토글 'preview_before_save' + 창 안의 '다음부터 건너뛰기'. 실측 RSS 92.8MB(5개·1000쪽)"
+    }
+  ]
+}

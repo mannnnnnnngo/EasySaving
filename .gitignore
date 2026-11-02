@@ -1,0 +1,21 @@
+# 가상환경
+.venv/
+.venv-*/
+venv/
+
+# 빌드 결과물 (exe 는 GitHub Releases 에 올린다)
+dist/
+build/_work/
+build/EasySaving/
+build/version_info.txt
+*.spec.bak
+
+# 파이썬 / OS 찌꺼기
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# 설치 시 만들어지는 실행 파일
+실행하기.vbs
+실행하기.bat
